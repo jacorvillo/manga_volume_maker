@@ -37,7 +37,7 @@ python volume_maker.py 01 03 "Volume_1"
 - With Custom Cover
 
 ```bash
-python volume_maker.py "cover.jpg" 01 03
+python volume_maker.py "cover.jpg" 01 03 "Volume_1"
 ```
 
 The resulting .cbz file will be named "Volume_1.cbz", containing all pages from Chapter 01 to Chapter 03, with the specified cover image. Multiple formats are supported besides .jpg (.png, .jpeg, etc.).
