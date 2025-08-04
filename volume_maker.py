@@ -31,14 +31,13 @@ def find_chapter_folders(base_path, start_chapter, end_chapter):
     for item in os.listdir(base_path):
         item_path = os.path.join(base_path, item)
         if os.path.isdir(item_path):
-            # Extract chapter number from folder name
-            match = re.match(r'Chapter (\d+)', item)
+            # Extract chapter number from folder name (support decimals)
+            match = re.match(r'Chapter ([\d\.]+)', item)
             if match:
-                chapter_num = int(match.group(1))
+                chapter_num = float(match.group(1))
                 if start_chapter <= chapter_num <= end_chapter:
                     chapter_folders.append((chapter_num, item_path))
-    
-    # Sort by chapter number
+    # Sort by chapter number (float)
     chapter_folders.sort(key=lambda x: x[0])
     return chapter_folders
 
@@ -232,50 +231,61 @@ def main():
         output_folder = None
         
         # Check if first argument is a cover image (not a number)
-        if not args[0].isdigit():
+        def is_number(s):
+            try:
+                float(s)
+                return True
+            except ValueError:
+                return False
+        if not is_number(args[0]):
             # First argument is cover image path
             cover_image_path = args[0]
             if len(args) < 3:
                 print("Error: Not enough arguments provided")
                 print("When using cover image, format: [cover_image] <start_chapter> <end_chapter> [output_filename]")
                 sys.exit(1)
-            start_chapter = int(args[1])
-            end_chapter = int(args[2])
+            try:
+                start_chapter = float(args[1])
+                end_chapter = float(args[2])
+            except ValueError:
+                print("Error: Chapter numbers must be numbers (can be decimals)")
+                sys.exit(1)
             output_folder = args[3] if len(args) > 3 else None
         else:
             # First argument is start chapter
-            start_chapter = int(args[0])
+            try:
+                start_chapter = float(args[0])
+            except ValueError:
+                print("Error: Start chapter must be a number (can be decimal)")
+                sys.exit(1)
             if len(args) < 2:
                 print("Error: End chapter is required")
                 sys.exit(1)
-            end_chapter = int(args[1])
+            try:
+                end_chapter = float(args[1])
+            except ValueError:
+                print("Error: End chapter must be a number (can be decimal)")
+                sys.exit(1)
             output_folder = args[2] if len(args) > 2 else None
-        
         if start_chapter > end_chapter:
             print("Error: Start chapter must be less than or equal to end chapter")
             sys.exit(1)
-        
         # Validate cover image path if provided
         if cover_image_path and not os.path.isabs(cover_image_path):
             # Convert relative path to absolute path
             cover_image_path = os.path.abspath(cover_image_path)
-        
         # Use the directory where the script is located as base path
         base_path = os.path.dirname(os.path.abspath(__file__))
-        
         print(f"🔍 Searching for chapters {start_chapter}-{end_chapter} in: {base_path}")
         if cover_image_path:
             print(f"📖 Cover image: {cover_image_path}")
-        
         success = merge_chapters(base_path, start_chapter, end_chapter, output_folder, cover_image_path)
-        
         if success:
             sys.exit(0)
         else:
             sys.exit(1)
-            
     except ValueError:
-        print("Error: Chapter numbers must be integers")
+        print("Error: Chapter numbers must be numbers (can be decimals)")
         sys.exit(1)
     except KeyboardInterrupt:
         print("\n\nOperation cancelled by user")
